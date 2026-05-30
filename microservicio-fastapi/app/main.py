@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import compatibility
+
 load_dotenv()
 
 APP_ENV = os.getenv("APP_ENV", "development")
@@ -28,6 +30,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(compatibility.router)
 
 
 @app.get("/", tags=["root"])
