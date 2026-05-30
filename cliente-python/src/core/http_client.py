@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import urljoin
 
@@ -21,10 +22,20 @@ class EncorelyHTTPClient:
         self.base_url = (base_url or settings.django_api_base_url).rstrip("/") + "/"
         self.timeout = timeout if timeout is not None else settings.request_timeout
         self._bearer_token: str | None = None
+        self._on_unauthorized: Callable[[], bool] | None = None
+        self._refreshing = False
 
     def set_bearer_token(self, token: str | None) -> None:
-        """Punto de extension para inyectar Bearer token sin manejar refresh."""
+        """Inyecta el Bearer token usado en las cabeceras Authorization."""
         self._bearer_token = token
+
+    def set_unauthorized_handler(self, handler: Callable[[], bool] | None) -> None:
+        """Registra un callback que intenta refrescar el token ante un 401.
+
+        Debe devolver True si logró renovar el token (en cuyo caso la petición
+        original se reintenta una vez) y False si no fue posible.
+        """
+        self._on_unauthorized = handler
 
     def _build_url(self, endpoint: str) -> str:
         return urljoin(self.base_url, endpoint.lstrip("/"))
@@ -37,21 +48,43 @@ class EncorelyHTTPClient:
             base_headers.update(headers)
         return base_headers
 
-    def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
+    def _run_refresh(self) -> bool:
+        """Ejecuta el handler de refresh protegido contra recursión."""
+        self._refreshing = True
+        try:
+            return bool(self._on_unauthorized()) if self._on_unauthorized else False
+        except Exception:
+            return False
+        finally:
+            self._refreshing = False
+
+    def _request(
+        self, method: str, endpoint: str, *, _allow_refresh: bool = True, **kwargs: Any
+    ) -> Response:
         url = self._build_url(endpoint)
-        kwargs["headers"] = self._build_headers(kwargs.get("headers"))
-        kwargs.setdefault("timeout", self.timeout)
+        request_kwargs = dict(kwargs)
+        request_kwargs["headers"] = self._build_headers(kwargs.get("headers"))
+        request_kwargs.setdefault("timeout", self.timeout)
 
         try:
-            response = requests.request(method=method, url=url, **kwargs)
+            response = requests.request(method=method, url=url, **request_kwargs)
             response.raise_for_status()
             return response
         except RequestException as exc:
-            status_code = None
-            response_body = ""
-            if getattr(exc, "response", None) is not None:
-                status_code = exc.response.status_code
-                response_body = exc.response.text
+            response_obj = getattr(exc, "response", None)
+            status_code = getattr(response_obj, "status_code", None)
+
+            # Token expirado: intenta refrescar una sola vez y reintenta la petición.
+            if (
+                status_code == 401
+                and _allow_refresh
+                and self._on_unauthorized is not None
+                and not self._refreshing
+                and self._run_refresh()
+            ):
+                return self._request(method, endpoint, _allow_refresh=False, **kwargs)
+
+            response_body = response_obj.text if response_obj is not None else ""
             raise EncorelyHTTPClientError(
                 f"HTTP {method.upper()} {url} fallo"
                 f" (status={status_code}, detail={response_body})"

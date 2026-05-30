@@ -62,7 +62,17 @@ class AuthClient:
         self.session.set_access_token(access_token)
         self.session.set_refresh_token(refresh_token)
         self.http_client.set_bearer_token(access_token)
+        # A partir de aquí, cualquier 401 intenta refrescar el token de forma transparente.
+        self.http_client.set_unauthorized_handler(self._refresh_silently)
         return data
+
+    def _refresh_silently(self) -> bool:
+        """Intenta refrescar el token sin propagar errores; usado ante un 401."""
+        try:
+            self.refresh_token()
+            return True
+        except AuthClientError:
+            return False
 
     def refresh_token(self) -> dict[str, Any]:
         refresh_token = self.session.get_refresh_token()
@@ -89,6 +99,7 @@ class AuthClient:
     def logout(self) -> None:
         self.session.clear_session()
         self.http_client.set_bearer_token(None)
+        self.http_client.set_unauthorized_handler(None)
 
     def get_current_user(self) -> dict[str, Any]:
         access_token = self.session.get_access_token()

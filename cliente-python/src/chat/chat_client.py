@@ -1,45 +1,21 @@
 from __future__ import annotations
 
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
-from src.auth.session import SessionManager
-from src.core.http_client import EncorelyHTTPClient, EncorelyHTTPClientError
+from src.core.authenticated_client import AuthenticatedClient
+from src.core.http_client import EncorelyHTTPClientError
 
 
 class ChatClientError(Exception):
     """Error del cliente de chat para fallos HTTP o respuestas inválidas."""
 
 
-class ChatClient:
+class ChatClient(AuthenticatedClient):
     """Cliente del módulo Chat con soporte de polling."""
 
-    def __init__(
-        self,
-        http_client: EncorelyHTTPClient | None = None,
-        session_manager: SessionManager | None = None,
-    ) -> None:
-        self.http_client = http_client or EncorelyHTTPClient()
-        self.session = session_manager or SessionManager()
-
-    def _authorize(self) -> None:
-        token = self.session.get_access_token()
-        if not token:
-            raise ChatClientError("No existe una sesión activa con access token")
-        self.http_client.set_bearer_token(token)
-
-    def _response_json(self, response: Any) -> Any:
-        try:
-            return response.json()
-        except ValueError as exc:
-            raise ChatClientError("La respuesta del servidor no es JSON válido") from exc
-
-    def _as_list(self, payload: Any) -> list[dict[str, Any]]:
-        if isinstance(payload, dict) and isinstance(payload.get("results"), list):
-            return payload["results"]
-        if isinstance(payload, list):
-            return payload
-        raise ChatClientError("Formato inesperado: se esperaba una lista de elementos")
+    error_class = ChatClientError
 
     def get_rooms(self) -> list[dict[str, Any]]:
         """Lista las salas de chat del usuario autenticado."""
