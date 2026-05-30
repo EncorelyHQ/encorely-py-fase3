@@ -1,47 +1,84 @@
-# Encorely · Fase 3
+# Encorely · Proyecto Final Integrador
 
-Encorely es una app de afinidad musical: empareja personas según la similitud de sus
-gustos (su *vibe vector*). Este repositorio agrupa las piezas Python de la **Fase 3**
-que consumen y complementan la API Django del proyecto, organizadas en tres
-subproyectos independientes:
+Encorely es una plataforma social de **matchmaking musical**: conecta personas según
+la afinidad de su "ADN musical" (vibe vector) y su *Concert Mood*. Este repositorio
+reúne **las cuatro piezas del proyecto** (Fase 2 + Fase 3) en un solo monorepo.
 
-| Subproyecto | Rol | Stack |
+## Mapeo con las fases
+
+| Fase | Entregable | Carpeta |
 |---|---|---|
-| [`cliente-python/`](cliente-python/) | Aplicación CLI interactiva que consume la API Django (auth, DNA Core, Sound-Swipe, Matches, Chat, Events) | requests · rich · questionary |
-| [`microservicio-fastapi/`](microservicio-fastapi/) | Microservicio autónomo que expone el cálculo de compatibilidad (`VibeCalculator`) | FastAPI · numpy · pydantic |
-| [`modelo-ia/`](modelo-ia/) | Scripts de análisis que extraen datos de Django y generan estadísticas/reporte de compatibilidad | pandas · numpy |
+| **Fase 2** — API con Django | Proyecto Django, modelos + migraciones, BD, endpoints REST (GET/POST/PUT/DELETE), Postman | [`api-django/`](api-django/) |
+| **Fase 3** — Integrador | Cliente Python que consume la API | [`cliente-python/`](cliente-python/) |
+| | Módulo de análisis de datos / IA | [`modelo-ia/`](modelo-ia/) |
+| | Microservicio FastAPI | [`microservicio-fastapi/`](microservicio-fastapi/) |
+| | CI con GitHub Actions | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 
-## Arquitectura
+## Estructura del repositorio
 
 ```
-                 ┌────────────────────┐
-                 │   API Django (ext.) │
-                 └─────────┬──────────┘
-                           │ JWT
-        ┌──────────────────┼───────────────────┐
-        │                  │                    │
- ┌──────▼──────┐   ┌───────▼───────┐    ┌───────▼────────┐
- │ cliente-py  │   │  modelo-ia    │    │ microservicio  │
- │  (CLI)      │──▶│  (análisis)   │    │  FastAPI       │
- └──────┬──────┘   └───────────────┘    └───────▲────────┘
-        │            preview de compatibilidad   │
-        └────────────────────────────────────────┘
+encorely-py-fase3/
+├── api-django/              # FASE 2 — Backend REST (Django + DRF + JWT)
+│   ├── apps/
+│   │   ├── users/           # ← MODELOS (User, MusicVibeVector), auth JWT, admin
+│   │   ├── music/           # Canciones, Swipes, algorithms.py (similitud coseno)
+│   │   ├── matches/         # Radar de compatibilidad + services.py
+│   │   ├── chat/            # Salas y mensajería
+│   │   └── events/          # Conciertos y asistencia
+│   │        ├── models.py        # ← los MODELOS de cada dominio
+│   │        ├── views.py         # ← las VIEWS REST (ViewSets / APIViews)
+│   │        ├── serializers.py   # validación y forma del JSON
+│   │        ├── urls.py          # rutas /api/...
+│   │        └── admin.py         # registro en el panel de admin
+│   ├── config/              # settings.py, urls.py raíz
+│   ├── frontend/            # ← FRONTEND WEB (login, swipe, radar, chat) HTML+CSS+JS
+│   ├── fixtures/ · postman/ # datos de ejemplo y colecciones Postman
+│   └── manage.py
+│
+├── cliente-python/          # Cliente CLI (Rich) que consume la API Django + microservicio
+│   └── src/{core,auth,dna_core,swipe,matches,chat,events,ui}/
+│
+├── microservicio-fastapi/   # Microservicio de compatibilidad (VibeCalculator, coseno)
+│   └── app/{routers,services,models}/
+│
+├── modelo-ia/               # Análisis de datos (pandas): estadísticas y reporte CSV
+│   └── src/{data_loader,analyzer,report}.py
+│
+├── tests/                   # Suite del cliente CLI (pytest)
+├── docs/                    # Documentación y colecciones
+├── pyproject.toml           # ruff / black
+└── .github/workflows/ci.yml # CI: ruff + tests de los 4 componentes
 ```
 
-El cliente CLI consulta la API Django para autenticarse y operar, y llama al
-microservicio FastAPI para previsualizar el score de compatibilidad antes de un swipe.
+### ¿Dónde está cada cosa?
 
-## Requisitos
+- **Modelos / base de datos** → `api-django/apps/<app>/models.py` (p. ej. `User` y
+  `MusicVibeVector` en [users/models.py](api-django/apps/users/models.py)).
+- **Views (endpoints REST)** → `api-django/apps/<app>/views.py`.
+- **Frontend web (la "ventana" de login, swipe, radar…)** → `api-django/frontend/templates/` y `frontend/static/`.
+- **Panel de administración** → Django Admin en `/admin/` (registros en cada `admin.py`).
+- **La IA / algoritmo de afinidad** → vive en dos lugares complementarios:
+  - [api-django/apps/music/algorithms.py](api-django/apps/music/algorithms.py) — similitud del coseno dentro del backend.
+  - [microservicio-fastapi/app/services/vibe_calculator.py](microservicio-fastapi/app/services/vibe_calculator.py) — el mismo cálculo expuesto como servicio independiente.
+- **Análisis de datos** → [modelo-ia/src/analyzer.py](modelo-ia/src/analyzer.py) (estadísticas sobre matches/swipes).
 
-- Python 3.11 o superior.
-- `pip` y `venv` disponibles.
+## Puesta en marcha (orden recomendado)
 
-## Puesta en marcha rápida
+Requisitos: Python 3.11+. La API usa **SQLite** (sin Docker).
 
-Cada subproyecto se ejecuta de forma independiente. El orden habitual para una demo
-completa es: **microservicio FastAPI → cliente CLI**.
+### 1. API Django (Fase 2) — puerto 8000
 
-### 1. Microservicio de compatibilidad
+```bash
+cd api-django
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env                 # ajusta SECRET_KEY si quieres
+python manage.py migrate
+python manage.py seed_demo           # crea admin + 3 usuarios + canciones + swipes
+python manage.py runserver           # http://localhost:8000
+```
+
+### 2. Microservicio FastAPI — puerto 8001
 
 ```bash
 cd microservicio-fastapi
@@ -51,64 +88,58 @@ cp .env.example .env
 uvicorn app.main:app --reload --port 8001
 ```
 
-Detalle de endpoints y contrato JSON en [microservicio-fastapi/README.md](microservicio-fastapi/README.md).
-
-### 2. Cliente CLI
+### 3. Cliente CLI
 
 ```bash
 cd cliente-python
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # ajusta DJANGO_API_BASE_URL y FASTAPI_BASE_URL
+cp .env.example .env                 # DJANGO_API_BASE_URL=http://localhost:8000/api
 python main.py
 ```
 
-El menú principal expone: Login, Registro, DNA Core, **Sound Swipe**, **Matches**,
-**Chat** y **Events** (todos integrados contra la API Django).
+## Paso a paso visual (para la sustentación)
 
-### 3. Módulo de análisis (opcional)
+Con la API Django corriendo en `http://localhost:8000`:
 
-```bash
-cd modelo-ia
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # define DJANGO_USERNAME y DJANGO_PASSWORD
-```
+1. **Login web** → abre `http://localhost:8000/` (o `/login/`). Entra con un usuario demo.
+2. **Discover / Sound-Swipe** (`/swipe/`) → califica canciones (✅/❌); la barra de ADN avanza.
+3. **Radar** (`/radar/`) → al superar 25 swipes se desbloquea; muestra usuarios compatibles.
+4. **Matches & Chat** (`/chat/`) → conecta con un match y conversa (polling).
+5. **Eventos** (`/events/`) → conciertos y asistencia.
+6. **Panel de administración** → `http://localhost:8000/admin/` (entra con `admin`).
+7. **Documentación interactiva de la API** → `http://localhost:8000/api/docs/` (Swagger).
+8. **Cliente CLI** → en otra terminal, `python main.py` consume la misma API desde consola.
 
-## Variables de entorno
+### Usuarios de demostración (`seed_demo`)
 
-`cliente-python/.env`:
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `admin` | `Encorely2026!` | Administrador (acceso a `/admin/`) |
+| `camilo` | `Encorely2026!` | Usuario (26 swipes, radar desbloqueado) |
+| `juandiego` | `Encorely2026!` | Usuario (26 swipes) |
+| `emmanuel` | `Encorely2026!` | Usuario (26 swipes) |
 
-```env
-ENCORELY_ENV=development
-DJANGO_API_BASE_URL=http://localhost:8000
-FASTAPI_BASE_URL=http://localhost:8001
-REQUEST_TIMEOUT=10
-```
+## Endpoints principales de la API
 
-Cada subproyecto trae su propio `.env.example` como referencia. Los `.env` reales
-están en `.gitignore` y nunca se versionan.
+Todos bajo el prefijo `/api/` (detalle completo en `/api/docs/`):
 
-## Tests
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/auth/register/` · `/api/auth/login/` · `/api/auth/token/refresh/` | Registro y JWT |
+| GET | `/api/auth/me/` | Perfil + ADN musical del usuario |
+| GET/POST | `/api/songs/` · `/api/swipes/` | Canciones y swipes |
+| GET | `/api/matches/radar/` · `/api/matches/compatibility/{id}/` | Radar y compatibilidad |
+| GET/POST | `/api/chat/rooms/` · `/api/events/` | Chat y eventos |
 
-```bash
-# Cliente CLI (desde la raíz; usa pytest.ini)
-pip install -r cliente-python/requirements.txt -r tests/requirements.txt
-pytest
-
-# Microservicio FastAPI
-cd microservicio-fastapi && pytest
-```
-
-## Calidad de código
-
-Linter y formateador configurados en [`pyproject.toml`](pyproject.toml):
+## Tests y calidad
 
 ```bash
-ruff check .     # lint + orden de imports
-ruff format .    # formateo (compatible con black)
+# Cliente CLI            → pytest (desde la raíz)
+# API Django             → cd api-django && pytest
+# Microservicio FastAPI  → cd microservicio-fastapi && pytest
+ruff check .             # lint + orden de imports
 ```
 
-El workflow de CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) corre ruff,
-los tests del cliente y del microservicio, y compila el módulo de análisis en cada
-push y pull request.
+El CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) ejecuta ruff y la suite de
+los cuatro componentes en cada push y pull request.
