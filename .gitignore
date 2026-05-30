@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Reportes generados por el módulo IA
+docs/reporte_compatibilidad.csv
+
+# Sistema / editores
+.DS_Store
+*.swp
+.idea/
+.vscode/
