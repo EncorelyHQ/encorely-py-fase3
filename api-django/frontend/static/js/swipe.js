@@ -22,18 +22,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSwipes = userInfo.swipe_count || 0;
     const requiredSwipes = 25;
 
+    // Solo actualiza la barra y el texto de progreso. El aviso de "Radar
+    // desbloqueado" se muestra una sola vez al cruzar el umbral (ver handleSwipe),
+    // y el panel "Ir al Radar" solo cuando se acaban las canciones (ver renderCards).
     function updateProgress() {
         if (currentSwipes >= requiredSwipes) {
             progressFill.style.width = '100%';
-            progressText.textContent = `${currentSwipes} Deslices - ¡Radar Desbloqueado!`;
-            if (currentSongIndex >= songs.length) {
-                radarReadyDiv.style.display = 'block';
-            }
+            progressText.textContent = `${currentSwipes} Deslices · Radar desbloqueado`;
         } else {
             const percent = (currentSwipes / requiredSwipes) * 100;
             progressFill.style.width = `${percent}%`;
             progressText.textContent = `${currentSwipes} / ${requiredSwipes} Deslices`;
         }
+    }
+
+    // Toast puntual (autodestruible) para avisos como desbloquear el Radar.
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText =
+            'position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;' +
+            'background:var(--color-neon-green);color:#000;font-weight:700;padding:0.8rem 1.4rem;' +
+            'border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.4);';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
     }
 
     // Mantiene sincronizado el contador real (swipe_count) desde el servidor.
@@ -73,6 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCards() {
         container.querySelectorAll('.swipe-card').forEach(c => c.remove());
+        // Mientras haya cartas, ningún panel de cierre debe estar visible.
+        noMoreSongsDiv.style.display = 'none';
+        radarReadyDiv.style.display = 'none';
 
         if (songs.length === 0 || currentSongIndex >= songs.length) {
             if (currentSwipes >= requiredSwipes) {
@@ -124,9 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const type = direction === 'right' ? 'RIGHT' : 'LEFT';
+            const before = currentSwipes;
             await api.post('/swipes/', { song: songId, type });
             await refreshUserInfo();
             updateProgress();
+            // Aviso puntual solo en el momento exacto de cruzar el umbral.
+            if (before < requiredSwipes && currentSwipes >= requiredSwipes) {
+                showToast('🎉 ¡Desbloqueaste el Radar musical!');
+            }
         } catch (error) {
             console.error('Error al registrar swipe:', error);
         }
