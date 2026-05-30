@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
 
-from app.models.schemas import CompatibilityResponse, CompatibilityRequest
+from app.models.schemas import CompatibilityRequest, CompatibilityResponse
 from app.services.vibe_calculator import VibeCalculator, VibeCalculatorError
 
 router = APIRouter(prefix="/compatibility", tags=["compatibility"])

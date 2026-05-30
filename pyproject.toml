@@ -1,0 +1,23 @@
+[project]
+name = "encorely-fase3"
+version = "1.0.0"
+description = "Cliente CLI, microservicio de compatibilidad y módulo de análisis de Encorely (Fase 3)."
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", "venv", "**/__pycache__", "modelo-ia/notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# E501 (línea larga) se controla con el formateador, no como error de lint.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "app"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "/(\\.venv|venv|modelo-ia/notebooks)/"

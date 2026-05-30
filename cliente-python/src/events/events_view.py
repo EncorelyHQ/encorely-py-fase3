@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from src.ui.display import show_error, show_info, show_success, show_table, show_title
+from src.ui.display import show_error, show_success, show_table, show_title
 
 
 def render_events_table(events: list[dict[str, Any]]) -> None:
