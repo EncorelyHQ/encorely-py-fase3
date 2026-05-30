@@ -1,88 +1,106 @@
+/**
+ * Radar de compatibilidad.
+ * Consume /matches/radar/ (sugerencias calculadas por la IA — similitud del coseno
+ * sobre el ADN musical) y permite enviar solicitudes de match reales.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     if (!sessionStorage.getItem('access_token')) {
         window.location.href = '/login/';
         return;
     }
 
-    const userInfo = JSON.parse(sessionStorage.getItem('user_info') || '{}');
     const requiredSwipes = 25;
-    const currentSwipes = userInfo.swipe_count || 0;
-
     const lockedDiv = document.getElementById('radar-locked');
     const contentDiv = document.getElementById('radar-content');
 
-    if (currentSwipes < requiredSwipes && !userInfo.has_enough_swipes) {
-        lockedDiv.style.display = 'block';
-        document.getElementById('radar-lock-progress-text').textContent = `${currentSwipes} / ${requiredSwipes} Deslices`;
-        document.getElementById('radar-lock-progress-fill').style.width = `${(currentSwipes/requiredSwipes)*100}%`;
-    } else {
-        contentDiv.style.display = 'block';
-        fetchMatches();
+    init();
+
+    async function init() {
+        try {
+            const radar = await api.get('/matches/radar/');
+            lockedDiv.style.display = 'none';
+            contentDiv.style.display = 'block';
+            renderMatches(radar.suggestions || []);
+        } catch (err) {
+            // 403 → aún no alcanza los 25 swipes: mostrar el estado bloqueado.
+            if (err && err.status === 403) {
+                showLocked();
+            } else {
+                console.error('Error cargando el radar:', err);
+                contentDiv.style.display = 'block';
+                document.getElementById('radar-grid').innerHTML =
+                    '<p style="color: var(--color-text-muted);">No se pudo cargar el radar.</p>';
+            }
+        }
     }
 
-    async function fetchMatches() {
+    async function showLocked() {
+        let swipes = 0;
         try {
-            // Intento real (en el futuro)
-            // const response = await api.get('/matches/');
-            // renderMatches(response.results);
-            throw new Error('Mocks');
-        } catch (error) {
-            // Datos Mockeados
-            const mocks = [
-                { id: 101, display_name: 'Ana García', city: 'Medellín', concert_mood: 'Front Row', match_percentage: 95, avatar: 'https://i.pravatar.cc/150?u=1' },
-                { id: 102, display_name: 'Carlos Ruiz', city: 'Bogotá', concert_mood: 'Moshpit', match_percentage: 88, avatar: 'https://i.pravatar.cc/150?u=2' },
-                { id: 103, display_name: 'Luisa F.', city: 'Medellín', concert_mood: 'Chiller', match_percentage: 82, avatar: 'https://i.pravatar.cc/150?u=3' },
-                { id: 104, display_name: 'David', city: 'Cali', concert_mood: 'VIP', match_percentage: 75, avatar: 'https://i.pravatar.cc/150?u=4' }
-            ];
-            renderMatches(mocks);
-        }
+            const me = await api.get('/auth/me/');
+            swipes = me.swipe_count || 0;
+        } catch (_) { /* usa 0 */ }
+
+        lockedDiv.style.display = 'block';
+        contentDiv.style.display = 'none';
+        document.getElementById('radar-lock-progress-text').textContent =
+            `${swipes} / ${requiredSwipes} Deslices`;
+        document.getElementById('radar-lock-progress-fill').style.width =
+            `${Math.min((swipes / requiredSwipes) * 100, 100)}%`;
+    }
+
+    function avatar(name, color) {
+        const letter = (name || '?').trim().charAt(0).toUpperCase();
+        return `<div style="width:100px;height:100px;border-radius:50%;margin:0 auto 1rem;
+                display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:800;
+                color:#000;background:${color};border:3px solid ${color};">${letter}</div>`;
     }
 
     function renderMatches(matches) {
         const grid = document.getElementById('radar-grid');
         grid.innerHTML = '';
 
+        if (!matches.length) {
+            grid.innerHTML =
+                '<p style="color: var(--color-text-muted);">Aún no hay sugerencias compatibles. ¡Sigue descubriendo música!</p>';
+            return;
+        }
+
         matches.forEach(m => {
+            const pct = Math.round((m.compatibility_score || 0) * 100);
+            let color = 'var(--color-neon-green)';
+            if (pct < 85) color = 'var(--color-neon-blue)';
+            if (pct < 80) color = 'var(--color-text-secondary)';
+
+            const name = m.display_name || m.username;
             const card = document.createElement('div');
             card.className = 'panel';
             card.style.textAlign = 'center';
             card.style.padding = '1.5rem';
-            
-            // Color según match
-            let matchColor = 'var(--color-neon-green)';
-            if (m.match_percentage < 85) matchColor = 'var(--color-neon-blue)';
-            if (m.match_percentage < 80) matchColor = 'var(--color-text-secondary)';
-
             card.innerHTML = `
-                <img src="${m.avatar}" alt="${m.display_name}" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid ${matchColor}; margin-bottom: 1rem; object-fit: cover;">
-                <h3 style="margin-bottom: 0.2rem;">${m.display_name}</h3>
-                <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">📍 ${m.city} • ${m.concert_mood}</p>
-                <div style="font-size: 1.5rem; font-weight: 800; color: ${matchColor}; margin-bottom: 1rem;">${m.match_percentage}% Compatibilidad</div>
-                <button class="btn btn-primary" style="width: 100%; padding: 0.5rem;" onclick="connect(${m.id}, this)">Conectar</button>
+                ${avatar(name, color)}
+                <h3 style="margin-bottom: 0.2rem;">${name}</h3>
+                <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">📍 ${m.city || '—'}</p>
+                <div style="font-size: 1.5rem; font-weight: 800; color: ${color}; margin-bottom: 1rem;">${pct}% Compatibilidad</div>
+                <button class="btn btn-primary" style="width: 100%; padding: 0.5rem;" onclick="connect(${m.user_id}, this)">Conectar</button>
             `;
             grid.appendChild(card);
         });
     }
 
-    window.connect = async (targetId, btn) => {
+    window.connect = async (targetUserId, btn) => {
         btn.disabled = true;
-        btn.textContent = 'Conectando...';
-        
+        btn.textContent = 'Enviando...';
         try {
-            // await api.post('/matches/', { target_user_id: targetId });
-            setTimeout(() => {
-                btn.textContent = '¡Match!';
-                btn.style.background = 'var(--color-neon-green)';
-                btn.style.color = '#000';
-                
-                // Redirigir al chat
-                setTimeout(() => {
-                    window.location.href = `/chat/?room=${targetId}`;
-                }, 800);
-            }, 500);
+            await api.post('/matches/', { other_user_id: targetUserId });
+            btn.textContent = '¡Solicitud enviada!';
+            btn.style.background = 'var(--color-neon-green)';
+            btn.style.color = '#000';
         } catch (err) {
-            btn.textContent = 'Error';
-            btn.disabled = false;
+            console.error('Error al conectar:', err);
+            const detail = err && err.data ? (err.data.detail || JSON.stringify(err.data)) : 'Error';
+            btn.textContent = typeof detail === 'string' ? detail.slice(0, 40) : 'Error';
+            setTimeout(() => { btn.disabled = false; btn.textContent = 'Conectar'; }, 2500);
         }
     };
 });

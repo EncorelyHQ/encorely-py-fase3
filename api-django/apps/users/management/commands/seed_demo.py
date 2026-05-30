@@ -8,9 +8,15 @@ Es idempotente: se puede ejecutar varias veces sin duplicar datos.
     python manage.py seed_demo
 """
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
+from apps.chat.models import ChatRoom, Message
+from apps.matches.models import Friendship, FriendshipStatus
+from apps.matches.services import MatchService
 from apps.music.models import Song, Swipe, SwipeType
 
 User = get_user_model()
@@ -74,13 +80,52 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self._ensure_songs()
+        self._seed_events()
         self._upsert_admin()
 
         songs = list(Song.objects.all()[:SWIPES_TO_UNLOCK_RADAR])
         for data in DEMO_USERS:
             self._upsert_user(data, songs)
 
+        self._seed_accepted_match("camilo", "juandiego")
+
         self.stdout.write(self.style.SUCCESS("\nSeed de demostración completado."))
+
+    def _seed_events(self) -> None:
+        """Carga el catálogo de eventos desde el fixture (idempotente por pk)."""
+        fixture = settings.BASE_DIR / "fixtures" / "events.json"
+        if fixture.exists():
+            call_command("loaddata", str(fixture), verbosity=0)
+            self.stdout.write(self.style.SUCCESS("Eventos   -> cargados desde fixture"))
+
+    def _seed_accepted_match(self, username_a: str, username_b: str) -> None:
+        """Crea un match ACEPTADO entre dos usuarios (genera sala de chat) + mensajes."""
+        try:
+            ua = User.objects.get(username=username_a)
+            ub = User.objects.get(username=username_b)
+        except User.DoesNotExist:
+            return
+
+        # El modelo exige user_source.id < user_target.id para un par único.
+        source, target = (ua, ub) if ua.id < ub.id else (ub, ua)
+        friendship, _ = Friendship.objects.update_or_create(
+            user_source=source,
+            user_target=target,
+            defaults={
+                "status": FriendshipStatus.ACCEPTED,
+                "matched_at": timezone.now(),
+                "compatibility_score": MatchService.pair_score(source, target),
+            },
+        )
+        # El signal de chat crea la sala al aceptar; aseguramos su existencia.
+        room, _ = ChatRoom.objects.get_or_create(friendship=friendship)
+
+        if not room.messages.exists():
+            Message.objects.create(room=room, sender=source, content="¡Hola! Hicimos match musical 🙌")
+            Message.objects.create(room=room, sender=target, content="¡Brutal! ¿Vas a algún concierto pronto?")
+        self.stdout.write(
+            self.style.SUCCESS(f"Match     -> {username_a} ↔ {username_b} aceptado (sala #{room.id})")
+        )
 
     def _ensure_songs(self) -> None:
         """Garantiza al menos 26 canciones para que se pueda desbloquear el Radar."""

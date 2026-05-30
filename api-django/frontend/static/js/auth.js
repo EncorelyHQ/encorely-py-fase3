@@ -98,8 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.user) sessionStorage.setItem('user_info', JSON.stringify(data.user));
                 
                 setTimeout(() => {
-                    const userInfo = data.user || {};
-                    window.location.href = userInfo.has_enough_swipes ? '/radar/' : '/swipe/';
+                    // Descubrir (Sound-Swipe) es la pantalla por defecto tras iniciar sesión.
+                    window.location.href = '/swipe/';
                 }, 1000);
                 
             } catch (err) {
