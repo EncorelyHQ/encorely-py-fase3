@@ -9,13 +9,13 @@ from rich.table import Table
 from src.swipe.swipe_client import SWIPE_GOAL
 from src.ui.display import console
 
-# Claves de audio features conocidas que Spotify/Encorely expone por canción.
+# Audio features que la API Django expone por canción (modelo Song / MusicVibeVector).
+# El orden debe coincidir con DNA_FEATURE_KEYS del dna_core para que los vectores
+# usuario ↔ canción sean comparables por similitud del coseno.
 AUDIO_FEATURE_KEYS = (
-    "danceability",
     "energy",
+    "danceability",
     "valence",
-    "acousticness",
-    "instrumentalness",
     "tempo",
 )
 

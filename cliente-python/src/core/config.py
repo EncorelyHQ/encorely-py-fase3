@@ -19,7 +19,7 @@ class Settings:
 
 
 settings = Settings(
-    django_api_base_url=os.getenv("DJANGO_API_BASE_URL", "http://localhost:8000"),
+    django_api_base_url=os.getenv("DJANGO_API_BASE_URL", "http://localhost:8000/api"),
     fastapi_base_url=os.getenv("FASTAPI_BASE_URL", "http://localhost:8001"),
     request_timeout=int(os.getenv("REQUEST_TIMEOUT", "10")),
 )

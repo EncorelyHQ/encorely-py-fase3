@@ -16,8 +16,9 @@ def swipe_client(http_client: MagicMock, session: SessionManager) -> SwipeClient
 
 
 def test_song_to_vector_flat_keeps_feature_order() -> None:
+    # Orden canónico: energy, danceability, valence, tempo.
     song = {"danceability": 0.8, "energy": 0.6, "valence": 0.7, "extra": 1}
-    assert song_to_vector(song) == [0.8, 0.6, 0.7]
+    assert song_to_vector(song) == [0.6, 0.8, 0.7]
 
 
 def test_song_to_vector_supports_nested_features() -> None:
@@ -40,7 +41,7 @@ def test_preview_compatibility_uses_user_vector_and_caches() -> None:
     song = {"danceability": 0.5, "energy": 0.4, "valence": 0.3}
     result = service.preview_compatibility(song)
 
-    compat.calculate.assert_called_once_with([1.0, 0.0, 0.0], [0.5, 0.4, 0.3])
+    compat.calculate.assert_called_once_with([1.0, 0.0, 0.0], [0.4, 0.5, 0.3])
     assert result["classification"] == "COMPATIBLE"
 
     service.preview_compatibility(song)

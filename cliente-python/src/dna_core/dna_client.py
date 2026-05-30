@@ -5,6 +5,10 @@ from typing import Any
 from src.auth.session import SessionManager
 from src.core.http_client import EncorelyHTTPClient, EncorelyHTTPClientError
 
+# Orden canónico de las dimensiones del ADN musical (coincide con MusicVibeVector
+# y los audio features de las canciones en la API Django).
+DNA_FEATURE_KEYS = ("energy", "danceability", "valence", "tempo")
+
 
 class DNAClientError(Exception):
     """Error del cliente DNA para flujos autenticados."""
@@ -77,6 +81,15 @@ class DNAClient:
                     return [float(value) for value in raw_vector]
                 except (TypeError, ValueError):
                     return None
+            # La API Django expone el ADN como objeto {energy, danceability, ...};
+            # se ordena según DNA_FEATURE_KEYS para obtener un vector comparable.
+            if isinstance(raw_vector, dict):
+                ordered = [raw_vector[k] for k in DNA_FEATURE_KEYS if k in raw_vector]
+                if ordered:
+                    try:
+                        return [float(value) for value in ordered]
+                    except (TypeError, ValueError):
+                        return None
         return None
 
     def _response_json(self, response: Any) -> dict[str, Any]:
