@@ -1,0 +1,6 @@
+# Dependencias del módulo modelo-ia (Fase 3)
+python-dotenv>=1.0.1
+requests>=2.32.0
+rich>=13.7.1
+pandas>=2.2.0
+numpy>=1.26.0
