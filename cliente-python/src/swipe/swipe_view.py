@@ -68,3 +68,18 @@ def render_swipe_progress(current: int, goal: int = SWIPE_GOAL) -> None:
 
     if current >= goal:
         console.print("[bold green]¡Objetivo de swipes alcanzado![/bold green]")
+
+
+def render_compatibility_preview(result: dict[str, Any]) -> None:
+    """Muestra el preview de compatibilidad devuelto por el microservicio."""
+    classification = result.get("classification", "DESCONOCIDO")
+    percentage = result.get("score_percentage", 0)
+    color = "green" if classification == "COMPATIBLE" else "yellow"
+    console.print(
+        Panel(
+            f"[bold]{percentage}%[/bold] de afinidad — [bold {color}]{classification}[/bold {color}]",
+            title="Preview de compatibilidad",
+            border_style=color,
+            expand=False,
+        )
+    )
