@@ -6,12 +6,12 @@ Endpoints de mensajería.
 
 from django.urls import path
 
-from apps.chat.views import ChatRoomListView, MessageListCreateView, MessageReadView
+from apps.chat.views import ChatRoomListCreateView, MessageListCreateView, MessageReadView
 
 app_name = 'chat'
 
 urlpatterns = [
-    path('chat/rooms/', ChatRoomListView.as_view(), name='room-list'),
+    path('chat/rooms/', ChatRoomListCreateView.as_view(), name='room-list'),
     path(
         'chat/rooms/<int:room_id>/messages/',
         MessageListCreateView.as_view(),

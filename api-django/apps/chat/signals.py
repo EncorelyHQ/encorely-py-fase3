@@ -13,7 +13,8 @@ from apps.matches.models import Friendship, FriendshipStatus
 
 @receiver(post_save, sender=Friendship)
 def ensure_chat_room_on_accepted(sender, instance, **kwargs):
-    """Patrón Observer: Friendship ACCEPTED → ChatRoom asociada."""
+    """Patrón Observer: Friendship ACCEPTED → ChatRoom directa con ambos participantes."""
     if instance.status != FriendshipStatus.ACCEPTED:
         return
-    ChatRoom.objects.get_or_create(friendship=instance)
+    room, _ = ChatRoom.objects.get_or_create(friendship=instance)
+    room.participants.add(instance.user_source_id, instance.user_target_id)

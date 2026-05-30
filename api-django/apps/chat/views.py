@@ -4,16 +4,16 @@ Chat — Vistas
 Listado de salas, mensajes por sala y marcar lectura.
 """
 
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import ListAPIView, ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.chat.models import ChatRoom, Message
 from apps.chat.permissions import IsChatParticipant
 from apps.chat.serializers import (
+    ChatRoomCreateSerializer,
     ChatRoomSerializer,
     MessageCreateSerializer,
     MessageReadSerializer,
@@ -21,20 +21,28 @@ from apps.chat.serializers import (
 )
 
 
-class ChatRoomListView(ListAPIView):
-    """GET — salas de chat del usuario (participante en el Friendship)."""
+class ChatRoomListCreateView(ListCreateAPIView):
+    """GET — salas del usuario (directas y de grupo). POST — crear un grupo."""
     permission_classes = [IsAuthenticated]
-    serializer_class = ChatRoomSerializer
+
+    def get_serializer_class(self):
+        return ChatRoomCreateSerializer if self.request.method == 'POST' else ChatRoomSerializer
 
     def get_queryset(self):
-        u = self.request.user
+        # `participants` es la fuente de verdad de pertenencia (directas y grupos).
         return (
-            ChatRoom.objects.filter(
-                Q(friendship__user_source=u) | Q(friendship__user_target=u)
-            )
+            self.request.user.chat_rooms
+            .prefetch_related('participants')
             .select_related('friendship', 'friendship__user_source', 'friendship__user_target')
             .order_by('-created_at')
         )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        room = serializer.save()
+        out = ChatRoomSerializer(room, context=self.get_serializer_context())
+        return Response(out.data, status=status.HTTP_201_CREATED)
 
 
 class MessageListCreateView(ListCreateAPIView):
@@ -48,7 +56,7 @@ class MessageListCreateView(ListCreateAPIView):
 
     def get_room(self):
         return get_object_or_404(
-            ChatRoom.objects.select_related('friendship'),
+            ChatRoom.objects.select_related('friendship').prefetch_related('participants'),
             pk=self.kwargs['room_id'],
         )
 
@@ -85,7 +93,6 @@ class MessageReadView(UpdateAPIView):
     http_method_names = ['patch', 'options', 'head']
 
     def get_queryset(self):
-        u = self.request.user
         return Message.objects.filter(
-            Q(room__friendship__user_source=u) | Q(room__friendship__user_target=u)
-        ).select_related('room__friendship')
+            room__participants=self.request.user
+        ).select_related('room')

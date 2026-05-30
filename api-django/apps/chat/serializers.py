@@ -13,26 +13,76 @@ class UserBriefSerializer(serializers.ModelSerializer):
 
 
 class ChatRoomSerializer(serializers.ModelSerializer):
-    """Sala con datos del otro participante respecto al usuario autenticado."""
+    """Sala directa o de grupo, con un título y el otro participante (si es 1:1)."""
     other_user = serializers.SerializerMethodField()
-    friendship_status = serializers.CharField(source='friendship.status', read_only=True)
+    participants = UserBriefSerializer(many=True, read_only=True)
+    title = serializers.SerializerMethodField()
+    friendship_status = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatRoom
-        fields = ('id', 'friendship', 'friendship_status', 'other_user', 'created_at')
+        fields = (
+            'id',
+            'is_group',
+            'name',
+            'title',
+            'friendship',
+            'friendship_status',
+            'other_user',
+            'participants',
+            'created_at',
+        )
         read_only_fields = fields
 
-    def get_other_user(self, obj):
+    def _request_user(self):
         request = self.context.get('request')
+        return request.user if request and request.user.is_authenticated else None
+
+    def get_friendship_status(self, obj):
+        return obj.friendship.status if obj.friendship_id else None
+
+    def get_other_user(self, obj):
+        # Solo aplica a salas directas (1:1).
+        if obj.is_group or not obj.friendship_id:
+            return None
+        user = self._request_user()
+        if not user:
+            return None
         f = obj.friendship
-        if request and request.user.is_authenticated:
-            other = (
-                f.user_target
-                if f.user_source_id == request.user.id
-                else f.user_source
-            )
-            return UserBriefSerializer(other).data
-        return None
+        other = f.user_target if f.user_source_id == user.id else f.user_source
+        return UserBriefSerializer(other).data
+
+    def get_title(self, obj):
+        if obj.is_group:
+            return obj.name or f'Grupo #{obj.pk}'
+        other = self.get_other_user(obj) or {}
+        return other.get('display_name') or other.get('username') or 'Chat'
+
+
+class ChatRoomCreateSerializer(serializers.Serializer):
+    """Crea una sala de grupo con un nombre y una lista de participantes."""
+    name = serializers.CharField(max_length=120)
+    participant_ids = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), many=True, write_only=True
+    )
+
+    def validate_participant_ids(self, value):
+        if not value:
+            raise serializers.ValidationError('Agrega al menos un participante al grupo.')
+        return value
+
+    def create(self, validated_data):
+        creator = self.context['request'].user
+        members = {u.id: u for u in validated_data['participant_ids']}
+        members[creator.id] = creator  # el creador siempre pertenece al grupo
+
+        room = ChatRoom.objects.create(
+            is_group=True,
+            name=validated_data['name'],
+            created_by=creator,
+        )
+        room.participants.set(list(members.values()))
+        return room
 
 
 class MessageSerializer(serializers.ModelSerializer):

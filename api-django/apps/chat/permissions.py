@@ -1,4 +1,4 @@
-"""Permisos de chat — solo participantes del Friendship ligado a la sala."""
+"""Permisos de chat — solo participantes de la sala (directa o de grupo)."""
 
 from rest_framework import permissions
 
@@ -11,9 +11,5 @@ class IsChatParticipant(permissions.BasePermission):
             return False
         from apps.chat.models import ChatRoom
 
-        if isinstance(obj, ChatRoom):
-            f = obj.friendship
-        else:
-            # Message
-            f = obj.room.friendship
-        return request.user.id in (f.user_source_id, f.user_target_id)
+        room = obj if isinstance(obj, ChatRoom) else obj.room
+        return room.participants.filter(pk=request.user.pk).exists()

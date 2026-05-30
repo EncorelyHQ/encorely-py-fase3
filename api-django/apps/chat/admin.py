@@ -5,8 +5,10 @@ from apps.chat.models import ChatRoom, Message
 
 @admin.register(ChatRoom)
 class ChatRoomAdmin(admin.ModelAdmin):
-    list_display = ('id', 'friendship', 'created_at')
-    raw_id_fields = ('friendship',)
+    list_display = ('id', 'is_group', 'name', 'friendship', 'created_by', 'created_at')
+    list_filter = ('is_group',)
+    raw_id_fields = ('friendship', 'created_by')
+    filter_horizontal = ('participants',)
 
 
 @admin.register(Message)

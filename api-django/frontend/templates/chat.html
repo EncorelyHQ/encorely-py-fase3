@@ -7,7 +7,10 @@
 <div class="chat-container" style="display: flex; height: 75vh; gap: 1.5rem; margin-top: 1rem;">
     <!-- Lista de Chats (Izquierda) -->
     <div class="chat-sidebar panel" style="width: 300px; overflow-y: auto; padding: 1rem;">
-        <h3 style="margin-bottom: 1rem; color: var(--color-neon-blue);">Tus Matches</h3>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: var(--color-neon-blue);">Tus chats</h3>
+            <button id="btn-new-group" class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.85rem;">+ Grupo</button>
+        </div>
         <div id="chat-rooms-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <!-- Rooms inyectadas dinámicamente -->
         </div>
