@@ -3,11 +3,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+from helpers import make_response
 
 from src.auth.session import SessionManager
 from src.chat.chat_client import ChatClient, ChatClientError
-
-from helpers import make_response
 
 
 @pytest.fixture

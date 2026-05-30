@@ -3,11 +3,10 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
+from helpers import make_response
 
 from src.auth.session import SessionManager
 from src.events.events_client import EventsClient, EventsClientError
-
-from helpers import make_response
 
 
 @pytest.fixture

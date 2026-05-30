@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.auth.session import SessionManager
-from src.core.http_client import EncorelyHTTPClient, EncorelyHTTPClientError
+from src.core.http_client import EncorelyHTTPClient
 
 
 @pytest.fixture

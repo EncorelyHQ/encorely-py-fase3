@@ -3,12 +3,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
+from helpers import make_response
 
 from src.auth.session import SessionManager
 from src.core.http_client import EncorelyHTTPClientError
 from src.matches.matches_client import MatchesClient, MatchesClientError
-
-from helpers import make_response
 
 
 @pytest.fixture
