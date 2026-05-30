@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registro — Encorely{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" style="max-width: 500px; margin: 3rem auto;">
+    <div class="panel">
+        <h2 style="margin-bottom: 0.5rem; color: var(--color-neon-purple); text-align: center;">Únete a Encorely</h2>
+        <p style="color: var(--color-text-secondary); margin-bottom: 2rem; text-align: center;">Encuentra matches con tu mismo ADN musical.</p>
+        
+        <form id="register-form">
+            <div id="register-error" class="form-error" style="color: var(--color-neon-pink); display: none; margin-bottom: 1rem; padding: 0.5rem; background: rgba(255,0,127,0.1); border-radius: 4px;"></div>
+            
+            <div class="form-group">
+                <label for="reg-username" class="form-label">Usuario</label>
+                <input type="text" id="reg-username" class="form-control" required>
+                <div class="invalid-feedback" id="error-username"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-email" class="form-label">Email</label>
+                <input type="email" id="reg-email" class="form-control" required>
+                <div class="invalid-feedback" id="error-email"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-display-name" class="form-label">Nombre Público (Opcional)</label>
+                <input type="text" id="reg-display-name" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-department" class="form-label">Departamento</label>
+                <select id="reg-department" class="form-control" required style="background-color: var(--color-bg-dark);">
+                    <option value="">Cargando departamentos...</option>
+                </select>
+                <div class="invalid-feedback" id="error-department"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-city" class="form-label">Ciudad</label>
+                <select id="reg-city" class="form-control" required style="background-color: var(--color-bg-dark);" disabled>
+                    <option value="">Selecciona un departamento primero</option>
+                </select>
+                <div class="invalid-feedback" id="error-city"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-concert-mood" class="form-label">¿Cuál es tu Mood de Concierto?</label>
+                <select id="reg-concert-mood" class="form-control" required style="background-color: var(--color-bg-dark);">
+                    <option value="moshpit">🤘 Moshpit</option>
+                    <option value="front_row">🎤 Front Row</option>
+                    <option value="chiller">😎 Chiller</option>
+                    <option value="vip">🥂 VIP</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-password" class="form-label">Contraseña</label>
+                <input type="password" id="reg-password" class="form-control" required>
+                <div class="invalid-feedback" id="error-password"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reg-password-confirm" class="form-label">Confirmar Contraseña</label>
+                <input type="password" id="reg-password-confirm" class="form-control" required>
+            </div>
+            
+            <button type="submit" id="btn-register-submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                <span class="btn-text">Registrarme</span>
+                <span class="btn-spinner" style="display: none;">Creando cuenta...</span>
+            </button>
+        </form>
+        
+        <div style="margin-top: 1.5rem; font-size: 0.9rem; text-align: center;">
+            <p style="color: var(--color-text-secondary);">¿Ya tienes cuenta? <a href="/login/">Inicia sesión</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Descubrir — Encorely{% endblock %}
+
+{% block content %}
+<div class="progress-container">
+    <div class="progress-text" id="swipe-counter-text">0 / 25 Swipes</div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="swipe-progress"></div>
+    </div>
+</div>
+
+<div class="swipe-container" id="swipe-container">
+    <!-- Aquí se inyectarán las tarjetas dinámicamente -->
+    <div id="no-more-songs" style="display: none; text-align: center; margin-top: 50%;">
+        <h3 style="color: var(--color-neon-blue);">¡Eso es todo por ahora!</h3>
+        <p style="color: var(--color-text-secondary);">Vuelve más tarde para descubrir más música.</p>
+    </div>
+    <div id="radar-ready" style="display: none; text-align: center; margin-top: 50%;">
+        <h3 style="color: var(--color-neon-green);">¡Tu ADN Musical está listo!</h3>
+        <p style="color: var(--color-text-secondary);">Ve al Radar para encontrar tus matches.</p>
+        <a href="/radar/" class="btn btn-primary" style="margin-top: 1rem;">Ir al Radar</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/swipe.js' %}"></script>
+{% endblock %}

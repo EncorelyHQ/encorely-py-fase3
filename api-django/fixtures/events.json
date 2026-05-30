@@ -1,0 +1,197 @@
+[
+  {
+    "model": "events.event",
+    "pk": 1,
+    "fields": {
+      "title": "Bad Bunny — Mundo Perreo Tour",
+      "artist_name": "Bad Bunny",
+      "venue_name": "Estadio Atanasio Girardot",
+      "event_date": "2026-07-15T20:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-1",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 2,
+    "fields": {
+      "title": "Festival Altavoz",
+      "artist_name": "Varios artistas",
+      "venue_name": "Parque Simón Bolívar",
+      "event_date": "2026-09-20T16:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-2",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 3,
+    "fields": {
+      "title": "Silvestre Dangond — Tour 30",
+      "artist_name": "Silvestre Dangond",
+      "venue_name": "Movistar Arena",
+      "event_date": "2026-08-10T19:30:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-3",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 4,
+    "fields": {
+      "title": "The Weeknd — Stadium Show",
+      "artist_name": "The Weeknd",
+      "venue_name": "Estadio El Campín",
+      "event_date": "2026-10-05T20:00:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-4",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 5,
+    "fields": {
+      "title": "Iron Maiden — Legacy Tour",
+      "artist_name": "Iron Maiden",
+      "venue_name": "Coliseo Live",
+      "event_date": "2026-11-12T19:00:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-5",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 6,
+    "fields": {
+      "title": "Karol G — Mañana Será Bonito",
+      "artist_name": "Karol G",
+      "venue_name": "Estadio Olímpico Pascual Guerrero",
+      "event_date": "2026-12-01T20:00:00Z",
+      "city": "Cali",
+      "affiliate_url": "https://example.com/tickets/encorely-6",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 7,
+    "fields": {
+      "title": "Jazz al Parque",
+      "artist_name": "Agrupación Bogotá Big Band",
+      "venue_name": "Parque Metropolitano",
+      "event_date": "2026-09-28T14:00:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-7",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 8,
+    "fields": {
+      "title": "Metallica — No Repeat Weekend",
+      "artist_name": "Metallica",
+      "venue_name": "Estadio Atanasio Girardot",
+      "event_date": "2026-06-22T18:30:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-8",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 9,
+    "fields": {
+      "title": "Manuel Turizo — Gira 2000",
+      "artist_name": "Manuel Turizo",
+      "venue_name": "Óvalo Gutiérrez",
+      "event_date": "2026-07-08T21:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-9",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 10,
+    "fields": {
+      "title": "Festival Petronio Álvarez",
+      "artist_name": "Grupos del Pacífico",
+      "venue_name": "Centro de Eventos Valle del Pacífico",
+      "event_date": "2026-08-18T17:00:00Z",
+      "city": "Cali",
+      "affiliate_url": "https://example.com/tickets/encorely-10",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 11,
+    "fields": {
+      "title": "C. Tangana — Sin carné",
+      "artist_name": "C. Tangana",
+      "venue_name": "Royal Center",
+      "event_date": "2026-10-25T20:30:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-11",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 12,
+    "fields": {
+      "title": "Morat — Bailando hasta que se acabe",
+      "artist_name": "Morat",
+      "venue_name": "Arena Medellín",
+      "event_date": "2026-09-05T19:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-12",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 13,
+    "fields": {
+      "title": "Héroes del Silencio Tribute",
+      "artist_name": "Entre dos tierras (cover band)",
+      "venue_name": "Teatro Metropolitano",
+      "event_date": "2026-06-14T20:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-13",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 14,
+    "fields": {
+      "title": "J Balvin — Reggaetón Night",
+      "artist_name": "J Balvin",
+      "venue_name": "Club Lágrimas",
+      "event_date": "2026-12-31T22:00:00Z",
+      "city": "Medellín",
+      "affiliate_url": "https://example.com/tickets/encorely-14",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  },
+  {
+    "model": "events.event",
+    "pk": 15,
+    "fields": {
+      "title": "Natalia Lafourcade — Acústico",
+      "artist_name": "Natalia Lafourcade",
+      "venue_name": "Teatro Jorge Eliecer Gaitán",
+      "event_date": "2026-11-28T19:00:00Z",
+      "city": "Bogotá",
+      "affiliate_url": "https://example.com/tickets/encorely-15",
+      "created_at": "2026-05-01T10:00:00Z"
+    }
+  }
+]

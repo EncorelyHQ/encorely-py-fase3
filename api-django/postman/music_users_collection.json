@@ -1,0 +1,235 @@
+{
+	"info": {
+		"name": "Encorely - Music & Users API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"Encorely2024!\",\n    \"password_confirm\": \"Encorely2024!\",\n    \"display_name\": \"Test User\",\n    \"city\": \"Medellín\",\n    \"concert_mood\": \"moshpit\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register", ""]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"Encorely2024!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Music",
+			"item": [
+				{
+					"name": "List Songs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/songs/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "songs", ""]
+						}
+					}
+				},
+				{
+					"name": "Filter Songs (Artist)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/songs/?artist=Bad Bunny",
+							"host": ["{{base_url}}"],
+							"path": ["api", "songs", ""],
+							"query": [
+								{
+									"key": "artist",
+									"value": "Bad Bunny"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Register Swipe",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"song\": 1,\n    \"type\": \"RIGHT\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/swipes/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "swipes", ""]
+						}
+					}
+				},
+				{
+					"name": "My Swipes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/swipes/my/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "swipes", "my", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "My Profile (Me)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"display_name\": \"Camilo Updated\",\n    \"bio\": \"Nueva biografía musical\",\n    \"city\": \"Bogotá\",\n    \"concert_mood\": \"vip\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/me/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me", ""]
+						}
+					}
+				},
+				{
+					"name": "Get User Vibe DNA",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/management/1/vibe/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "management", "1", "vibe", ""]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "your_token_here",
+			"type": "string"
+		}
+	]
+}

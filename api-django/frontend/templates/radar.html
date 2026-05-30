@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Radar — Encorely{% endblock %}
+
+{% block content %}
+<div id="radar-locked" style="display: none; text-align: center; margin-top: 5rem;">
+    <h2 style="color: var(--color-neon-purple); margin-bottom: 1rem;">Radar Bloqueado 🔒</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 2rem;">
+        Necesitas definir tu ADN Musical antes de encontrar matches.
+    </p>
+    
+    <div class="progress-container" style="max-width: 300px; margin: 0 auto 2rem;">
+        <div class="progress-text" id="radar-lock-progress-text">0 / 25 Swipes</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="radar-lock-progress-fill" style="background: var(--color-neon-purple);"></div>
+        </div>
+    </div>
+    
+    <a href="/swipe/" class="btn btn-primary">Ir a Descubrir</a>
+</div>
+
+<div id="radar-content" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2 style="color: var(--color-neon-green);">Tu Radar Musical</h2>
+        <span class="badge" style="background: rgba(0,255,136,0.2); color: var(--color-neon-green); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">Analizando ADN...</span>
+    </div>
+    
+    <div class="radar-grid" id="radar-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+        <!-- Tarjetas dinámicas -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/radar.js' %}"></script>
+{% endblock %}

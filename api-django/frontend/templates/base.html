@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Encorely — Matchmaking Musical{% endblock %}</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Encorely es la plataforma social de matchmaking musical basada en tus gustos de conciertos. Conecta a través de la música.">
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="{% static 'css/encorely.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="{% static 'src/img/logo-color-bisel.png' %}" alt="Encorely Logo" style="height: 45px; width: auto; object-fit: contain;">
+        </a>
+        {% if request.path != '/login/' and request.path != '/register/' and request.path != '/' %}
+        <ul class="navbar-nav" id="navbar-menu">
+            <!-- Los links activos dependerán de la vista actual -->
+            <li class="nav-item"><a href="/swipe/" class="{% if request.path == '/swipe/' %}active{% endif %}" id="nav-discover">Descubrir</a></li>
+            <li class="nav-item"><a href="/radar/" class="{% if request.path == '/radar/' %}active{% endif %}" id="nav-radar">Radar</a></li>
+            <li class="nav-item"><a href="/events/" class="{% if request.path == '/events/' %}active{% endif %}" id="nav-events">Eventos</a></li>
+            <li class="nav-item"><a href="/chat/" class="{% if request.path == '/chat/' %}active{% endif %}" id="nav-messages">Mensajes</a></li>
+            <li class="nav-item"><a href="/profile/" class="{% if request.path == '/profile/' %}active{% endif %}" id="nav-profile">Perfil</a></li>
+        </ul>
+        <!-- Botón de auth (oculto por JS si está logueado) -->
+        <div class="navbar-auth" id="auth-buttons">
+            <a href="/login/" class="btn btn-outline" id="btn-login" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Iniciar Sesión</a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <!-- Contenedor para notificaciones (Toasts) -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Contenido Principal -->
+    <main class="main-container">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- API Client JS (Facade) -->
+    <script src="{% static 'js/api.js' %}"></script>
+    
+    <!-- Lógica general de la UI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = sessionStorage.getItem('access_token');
+            const authButtons = document.getElementById('auth-buttons');
+            const navbarMenu = document.getElementById('navbar-menu');
+            
+            // Si el usuario está autenticado, muestra el botón de Logout
+            if (token) {
+                authButtons.innerHTML = `<button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Cerrar Sesión</button>`;
+            } else {
+                // Si el usuario NO está autenticado, restringe acceso a las rutas protegidas
+                const links = navbarMenu.querySelectorAll('a');
+                links.forEach(link => {
+                    link.style.opacity = '0.5';
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.location.href = '/login/';
+                    });
+                });
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('refresh_token');
+            window.location.href = '/login/';
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
