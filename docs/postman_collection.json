@@ -1,0 +1,206 @@
+{
+  "info": {
+    "name": "Encorely — Matches, Chat, Events",
+    "description": "Flujo: auth JWT → matches / radar → chat → eventos (fixtures). Reemplaza `access` con el token JWT del login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "access", "value": "" },
+    { "key": "other_user_id", "value": "2" },
+    { "key": "friendship_id", "value": "1" },
+    { "key": "room_id", "value": "1" },
+    { "key": "message_id", "value": "1" },
+    { "key": "event_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"TU_PASSWORD\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login/",
+            "description": "Copia `access` del JSON de respuesta a la variable de colección."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matches",
+      "item": [
+        {
+          "name": "Listar friendships",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/matches/"
+          }
+        },
+        {
+          "name": "Radar (requiere 25+ swipes)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/matches/radar/"
+          }
+        },
+        {
+          "name": "Compatibilidad en tiempo real",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/matches/compatibility/{{other_user_id}}/"
+          }
+        },
+        {
+          "name": "Enviar solicitud de match",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"other_user_id\": {{other_user_id}}\n}"
+            },
+            "url": "{{base_url}}/api/matches/"
+          }
+        },
+        {
+          "name": "Aceptar o rechazar solicitud",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"accepted\"\n}"
+            },
+            "url": "{{base_url}}/api/matches/{{friendship_id}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Listar salas",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/chat/rooms/"
+          }
+        },
+        {
+          "name": "Historial de mensajes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/chat/rooms/{{room_id}}/messages/"
+          }
+        },
+        {
+          "name": "Enviar mensaje",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hola desde Postman\"\n}"
+            },
+            "url": "{{base_url}}/api/chat/rooms/{{room_id}}/messages/"
+          }
+        },
+        {
+          "name": "Marcar mensaje leído",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_read\": true\n}"
+            },
+            "url": "{{base_url}}/api/chat/messages/{{message_id}}/read/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Listar eventos (filtros opcionales)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/events/?city=Medellín&date_from=2026-06-01"
+          }
+        },
+        {
+          "name": "Detalle evento",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/events/{{event_id}}/"
+          }
+        },
+        {
+          "name": "Asistiré",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"has_ticket\": false\n}"
+            },
+            "url": "{{base_url}}/api/events/{{event_id}}/attend/"
+          }
+        },
+        {
+          "name": "Asistentes (con compatibilidad)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access}}" }
+            ],
+            "url": "{{base_url}}/api/events/{{event_id}}/attendees/"
+          }
+        }
+      ]
+    }
+  ]
+}
