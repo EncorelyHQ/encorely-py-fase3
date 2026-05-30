@@ -1,63 +1,83 @@
-# Encorely Fase 3
+# Encorely · Fase 3
 
-Este repositorio contiene el cliente Python de Encorely para la Fase 3, organizado como un subproyecto en `cliente-python/`.
+Encorely es una app de afinidad musical: empareja personas según la similitud de sus
+gustos (su *vibe vector*). Este repositorio agrupa las piezas Python de la **Fase 3**
+que consumen y complementan la API Django del proyecto, organizadas en tres
+subproyectos independientes:
 
-## Requisitos previos
+| Subproyecto | Rol | Stack |
+|---|---|---|
+| [`cliente-python/`](cliente-python/) | Aplicación CLI interactiva que consume la API Django (auth, DNA Core, Sound-Swipe, Matches, Chat, Events) | requests · rich · questionary |
+| [`microservicio-fastapi/`](microservicio-fastapi/) | Microservicio autónomo que expone el cálculo de compatibilidad (`VibeCalculator`) | FastAPI · numpy · pydantic |
+| [`modelo-ia/`](modelo-ia/) | Scripts de análisis que extraen datos de Django y generan estadísticas/reporte de compatibilidad | pandas · numpy |
+
+## Arquitectura
+
+```
+                 ┌────────────────────┐
+                 │   API Django (ext.) │
+                 └─────────┬──────────┘
+                           │ JWT
+        ┌──────────────────┼───────────────────┐
+        │                  │                    │
+ ┌──────▼──────┐   ┌───────▼───────┐    ┌───────▼────────┐
+ │ cliente-py  │   │  modelo-ia    │    │ microservicio  │
+ │  (CLI)      │──▶│  (análisis)   │    │  FastAPI       │
+ └──────┬──────┘   └───────────────┘    └───────▲────────┘
+        │            preview de compatibilidad   │
+        └────────────────────────────────────────┘
+```
+
+El cliente CLI consulta la API Django para autenticarse y operar, y llama al
+microservicio FastAPI para previsualizar el score de compatibilidad antes de un swipe.
+
+## Requisitos
 
 - Python 3.11 o superior.
-- `pip` disponible en el entorno local.
-- Git para clonar y actualizar el repositorio.
+- `pip` y `venv` disponibles.
 
-## Estructura principal
+## Puesta en marcha rápida
 
-- `cliente-python/main.py`: punto de entrada de la aplicación CLI.
-- `cliente-python/src/core/`: configuración centralizada y cliente HTTP compartido.
-- `cliente-python/src/auth/`: sesión en memoria y cliente de autenticación.
-- `cliente-python/src/dna_core/`: consulta del vector musical del usuario autenticado.
-- `cliente-python/src/ui/`: utilidades de pantalla, prompts y menú principal.
-- `cliente-python/src/swipe/`, `cliente-python/src/matches/`, `cliente-python/src/chat/`, `cliente-python/src/events/`: módulos reservados para futuras integraciones.
+Cada subproyecto se ejecuta de forma independiente. El orden habitual para una demo
+completa es: **microservicio FastAPI → cliente CLI**.
 
-## Crear el entorno virtual
-
-Desde la raíz del repositorio:
+### 1. Microservicio de compatibilidad
 
 ```bash
-python -m venv .venv
+cd microservicio-fastapi
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8001
 ```
 
-Activar el entorno virtual:
+Detalle de endpoints y contrato JSON en [microservicio-fastapi/README.md](microservicio-fastapi/README.md).
 
-En Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-En Windows CMD:
-
-```cmd
-.venv\Scripts\activate.bat
-```
-
-En Linux o macOS:
+### 2. Cliente CLI
 
 ```bash
-source .venv/bin/activate
+cd cliente-python
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # ajusta DJANGO_API_BASE_URL y FASTAPI_BASE_URL
+python main.py
 ```
 
-## Instalar dependencias
+El menú principal expone: Login, Registro, DNA Core, **Sound Swipe**, **Matches**,
+**Chat** y **Events** (todos integrados contra la API Django).
 
-Con el entorno virtual activado, instala las dependencias del cliente:
+### 3. Módulo de análisis (opcional)
 
 ```bash
-pip install -r cliente-python/requirements.txt
+cd modelo-ia
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # define DJANGO_USERNAME y DJANGO_PASSWORD
 ```
 
-## Configurar variables de entorno
+## Variables de entorno
 
-Dentro de `cliente-python/` existe el archivo `.env.example`. Úsalo como base para crear tu archivo real `.env`.
-
-Variables disponibles:
+`cliente-python/.env`:
 
 ```env
 ENCORELY_ENV=development
@@ -66,47 +86,29 @@ FASTAPI_BASE_URL=http://localhost:8001
 REQUEST_TIMEOUT=10
 ```
 
-Copia el ejemplo y ajusta los valores según tu entorno:
+Cada subproyecto trae su propio `.env.example` como referencia. Los `.env` reales
+están en `.gitignore` y nunca se versionan.
+
+## Tests
 
 ```bash
-copy cliente-python\.env.example cliente-python\.env
+# Cliente CLI (desde la raíz; usa pytest.ini)
+pip install -r cliente-python/requirements.txt -r tests/requirements.txt
+pytest
+
+# Microservicio FastAPI
+cd microservicio-fastapi && pytest
 ```
 
-En PowerShell también puedes usar:
+## Calidad de código
 
-```powershell
-Copy-Item cliente-python\.env.example cliente-python\.env
-```
-
-## Ejecutar el cliente
-
-Ejecuta la aplicación desde la carpeta `cliente-python/`:
+Linter y formateador configurados en [`pyproject.toml`](pyproject.toml):
 
 ```bash
-cd cliente-python
-python main.py
+ruff check .     # lint + orden de imports
+ruff format .    # formateo (compatible con black)
 ```
 
-La aplicación mostrará una bienvenida inicial y abrirá el menú principal interactivo.
-
-## Módulos disponibles
-
-- `core`: agrupa la configuración y la capa HTTP reutilizable.
-- `auth`: maneja login, registro, refresh y sesión en memoria.
-- `dna_core`: consulta el vector musical del usuario autenticado.
-- `ui`: concentra la experiencia CLI con pantalla, prompts y navegación principal.
-
-Los módulos de `swipe`, `matches`, `chat` y `events` están preparados como base de integración y aún no contienen lógica funcional completa.
-
-## Validación básica
-
-Si quieres comprobar que el proyecto está bien formado, puedes usar:
-
-```bash
-python -m compileall cliente-python
-```
-
-## Notas
-
-- El cliente CLI está pensado para consumir la API Django existente.
-- Los endpoints y el comportamiento pueden evolucionar a medida que los módulos del equipo se integren.
+El workflow de CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) corre ruff,
+los tests del cliente y del microservicio, y compila el módulo de análisis en cada
+push y pull request.
