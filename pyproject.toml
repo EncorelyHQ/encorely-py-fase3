@@ -7,7 +7,9 @@ requires-python = ">=3.11"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = [".venv", "venv", "**/__pycache__", "modelo-ia/notebooks"]
+# api-django es un subproyecto Django con sus propias convenciones (migraciones,
+# settings) y su propio pytest.ini; se valida por separado en su job de CI.
+extend-exclude = [".venv", "venv", "**/__pycache__", "modelo-ia/notebooks", "api-django"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
