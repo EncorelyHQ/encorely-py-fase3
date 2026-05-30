@@ -1,1 +1,2 @@
 # Dependencias del cliente-python (setup inicial Fase 3)
+python-dotenv>=1.0.1
