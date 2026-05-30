@@ -83,5 +83,14 @@ class EncorelyHTTPClient:
     ) -> Response:
         return self._request("put", endpoint, data=data, json=json, headers=headers)
 
+    def patch(
+        self,
+        endpoint: str,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response:
+        return self._request("patch", endpoint, data=data, json=json, headers=headers)
+
     def delete(self, endpoint: str, headers: dict[str, str] | None = None) -> Response:
         return self._request("delete", endpoint, headers=headers)
