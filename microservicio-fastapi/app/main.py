@@ -21,11 +21,19 @@ app = FastAPI(
     ),
 )
 
-# CORS abierto en desarrollo: el cliente Python y la API Django consumen este servicio
-# desde orígenes distintos. En producción debe restringirse a hosts conocidos.
+# CORS restringido a orígenes conocidos (configurable por env). Evita el anti-patrón
+# de allow_origins=["*"] junto a allow_credentials=True, que los navegadores rechazan.
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:8000,http://127.0.0.1:8000",
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

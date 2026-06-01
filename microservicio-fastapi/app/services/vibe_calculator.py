@@ -14,6 +14,14 @@ class VibeCalculator:
 
     Portado desde la Fase 2. La similitud del coseno mide el ángulo entre dos
     vectores de audio features; valores cercanos a 1 implican gustos afines.
+
+    Nota de arquitectura: esta fórmula vive también en la API Django
+    (apps/music/algorithms.py). La duplicación es INTENCIONAL: ambos son servicios
+    desplegables de forma independiente y no deben acoplarse mediante un paquete
+    compartido (eso anularía el propósito del microservicio). El microservicio
+    expone el cálculo como servicio autónomo para clientes externos (p. ej. el
+    cliente CLI), mientras Django lo usa internamente para el Radar. Ver
+    docs/DOCUMENTO_TECNICO.md, sección "Decisiones técnicas".
     """
 
     # Umbral por defecto sobre el score normalizado [0, 1] para clasificar como COMPATIBLE.
