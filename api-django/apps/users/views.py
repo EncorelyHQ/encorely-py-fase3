@@ -25,6 +25,7 @@ class RegisterView(CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
+    throttle_scope = 'auth'
 
 
 class MeView(RetrieveUpdateAPIView):
@@ -89,3 +90,4 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Endpoint: POST /api/auth/login/
     """
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_scope = 'auth'
