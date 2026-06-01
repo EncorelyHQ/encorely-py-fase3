@@ -22,7 +22,28 @@ class EncorelyAPI {
         return headers;
     }
 
-    async _request(endpoint, options = {}) {
+    // Intenta renovar el access token con el refresh token guardado.
+    async _refreshAccessToken() {
+        const refresh = sessionStorage.getItem('refresh_token');
+        if (!refresh) return false;
+        try {
+            const resp = await fetch(`${this.baseURL}/auth/token/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh }),
+            });
+            if (!resp.ok) return false;
+            const data = await resp.json();
+            sessionStorage.setItem('access_token', data.access);
+            // SimpleJWT rota el refresh token: si llega uno nuevo, se reemplaza.
+            if (data.refresh) sessionStorage.setItem('refresh_token', data.refresh);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    async _request(endpoint, options = {}, allowRefresh = true) {
         const url = `${this.baseURL}${endpoint}`;
         const config = {
             ...options,
@@ -34,12 +55,19 @@ class EncorelyAPI {
 
         try {
             const response = await fetch(url, config);
-            
-            // Si es un error 401 (no autorizado), podríamos manejar refresh token o redirigir
-            if (response.status === 401) {
-                console.warn("API: No autorizado o token expirado.");
-                // Opcional: intentar refresh token automáticamente o redirigir
-                // window.location.href = '/login/';
+
+            // Token expirado: intenta refrescar una vez y reintentar la petición original.
+            // Se evita el bucle en los propios endpoints de auth.
+            const isAuthEndpoint =
+                endpoint.includes('/auth/login') || endpoint.includes('/auth/token/refresh');
+            if (response.status === 401 && allowRefresh && !isAuthEndpoint) {
+                if (await this._refreshAccessToken()) {
+                    return this._request(endpoint, options, false);
+                }
+                // No se pudo refrescar: limpiar sesión y volver al login.
+                sessionStorage.clear();
+                window.location.href = '/login/';
+                return null;
             }
 
             const isJson = response.headers.get('content-type')?.includes('application/json');

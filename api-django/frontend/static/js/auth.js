@@ -119,12 +119,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const deptSelect = document.getElementById('reg-department');
         const citySelect = document.getElementById('reg-city');
 
-        // (Carga de departamentos y ciudades permanece igual...)
+        // Fallback local: si la API externa de departamentos/ciudades falla o no hay
+        // internet, el registro no debe quedar bloqueado (la ciudad es obligatoria).
+        const FALLBACK_CITIES = [
+            'Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena', 'Cúcuta',
+            'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué', 'Manizales',
+            'Villavicencio', 'Pasto', 'Montería', 'Armenia', 'Neiva', 'Popayán',
+        ].sort((a, b) => a.localeCompare(b));
+
+        const fillCityOptions = (names, placeholder = 'Selecciona Ciudad') => {
+            citySelect.innerHTML = `<option value="">${placeholder}</option>`;
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                citySelect.appendChild(option);
+            });
+            citySelect.disabled = false;
+        };
+
+        const useOfflineCities = () => {
+            deptSelect.innerHTML = '<option value="">— (modo offline) —</option>';
+            deptSelect.disabled = true;
+            fillCityOptions(FALLBACK_CITIES, 'Selecciona Ciudad');
+        };
+
         const loadDepartments = async () => {
             try {
                 const response = await fetch('https://api-colombia.com/api/v1/Department');
+                if (!response.ok) throw new Error('bad status');
                 const departments = await response.json();
-                
+
                 deptSelect.innerHTML = '<option value="">Selecciona Departamento</option>';
                 departments.sort((a, b) => a.name.localeCompare(b.name)).forEach(dept => {
                     const option = document.createElement('option');
@@ -133,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     deptSelect.appendChild(option);
                 });
             } catch (err) {
-                deptSelect.innerHTML = '<option value="">Error al cargar</option>';
+                // Sin internet o API caída → ciudades locales para no bloquear el registro.
+                useOfflineCities();
             }
         };
 
@@ -150,17 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
             citySelect.innerHTML = '<option value="">Cargando ciudades...</option>';
             try {
                 const response = await fetch(`https://api-colombia.com/api/v1/Department/${deptId}/cities`);
+                if (!response.ok) throw new Error('bad status');
                 const cities = await response.json();
-                citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
-                cities.sort((a, b) => a.name.localeCompare(b.name)).forEach(city => {
-                    const option = document.createElement('option');
-                    option.value = city.name;
-                    option.textContent = city.name;
-                    citySelect.appendChild(option);
-                });
-                citySelect.disabled = false;
+                fillCityOptions(cities.sort((a, b) => a.name.localeCompare(b.name)).map(c => c.name));
             } catch (err) {
-                citySelect.innerHTML = '<option value="">Error al cargar</option>';
+                fillCityOptions(FALLBACK_CITIES);
             }
         });
 
